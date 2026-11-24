@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Red Sea Docking Calculator 2026 · Public</title>
+<style>
+  :root{--navy:#0b2a4a;--teal:#0f8b8d;--bg:#f4f7fa;--line:#dde4ea;--muted:#64748b;--red:#b42318;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:#0f172a}
+  header{background:var(--navy);color:#fff;padding:16px 16px 14px}
+  header h1{margin:0;font-size:18px;font-weight:600}
+  header p{margin:4px 0 0;font-size:12px;opacity:.75}
+  main{max-width:720px;margin:0 auto;padding:14px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+  .card h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:16px;background:#fff;font-family:inherit}
+  textarea{min-height:60px;resize:vertical}
+  .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{flex:1;padding:10px 4px;border:0;background:#fff;font-size:14px;cursor:pointer;color:#0f172a}
+  .seg button.on{background:var(--teal);color:#fff}
+  .full{grid-column:1/-1}
+  .chk{display:flex;align-items:center;gap:8px;font-size:14px;margin:0;color:#0f172a}
+  .chk input{width:auto}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:6px;border-bottom:1px solid var(--line)}
+  td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tr.soma td{background:#e8f6f6}
+  .m{font-weight:600}
+  .sub{font-size:11px;color:var(--muted)}
+  .tot{font-weight:700}
+  .na{color:#94a3b8;font-style:italic}
+  .warn{color:var(--red)}
+  .notes{font-size:12px;color:var(--muted);line-height:1.5;padding-left:18px;margin:0}
+  .notes li{margin-bottom:3px}
+  .summary{font-size:13px;margin:0 0 10px;color:#334155}
+  .btn{padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:14px;cursor:pointer;color:#0f172a}
+  .btn.pri{background:var(--teal);border-color:var(--teal);color:#fff}
+  .btn.del{color:var(--red);border-color:#f3c9c4}
+  .btn.sm{padding:6px 10px;font-size:13px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .boatrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .boatrow:last-child{border-bottom:0}
+  .grp{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:12px 0 2px}
+  .status{font-size:12px;color:var(--muted);margin:0 0 8px}
+  #fleetList{max-height:none}
+  .hidden{display:none}
+  input.search{margin-bottom:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Red Sea Docking Calculator</h1>
+  <p>Wet berth · 2026 price lists · Somabay, Hurghada, Abydos, Abu Tig</p>
+</header>
+<main>
+  <!-- CALCULATOR -->
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label for="loa" id="loaLabel">LOA (metres)</label>
+        <input id="loa" type="number" inputmode="decimal" min="1" step="0.01" value="15">
+        <div class="sub" id="loaConv" style="margin-top:4px"></div>
+      </div>
+      <div>
+        <label for="qty" id="qtyLabel">Number of years</label>
+        <input id="qty" type="number" inputmode="numeric" min="1" step="1" value="1">
+      </div>
+      <div class="full">
+        <label>LOA unit</label>
+        <div class="seg" data-key="unit"><button data-v="m" class="on">Metres</button><button data-v="ft">Feet</button></div>
+      </div>
+      <div class="full">
+        <label>Show prices in</label>
+        <div class="seg" data-key="cur"><button data-v="USD" class="on">US$</button><button data-v="EGP">EGP</button><button data-v="EUR">€</button></div>
+      </div>
+      <div class="full">
+        <label>Duration</label>
+        <div class="seg" data-key="dur"><button data-v="D">Daily</button><button data-v="M">Monthly</button><button data-v="Y" class="on">Yearly</button></div>
+      </div>
+      <div class="full">
+        <label>Hull</label>
+        <div class="seg" data-key="hull"><button data-v="mono" class="on">Monohull</button><button data-v="cat">Catamaran ×1.5</button></div>
+      </div>
+      <div class="full">
+        <label>Use</label>
+        <div class="seg" data-key="use"><button data-v="P" class="on">Private</button><button data-v="C">Commercial</button></div>
+      </div>
+      <div>
+        <label for="fx">EGP per US$</label>
+        <input id="fx" type="number" inputmode="decimal" step="0.1" value="50">
+      </div>
+      <div>
+        <label for="fxe">EGP per €</label>
+        <input id="fxe" type="number" inputmode="decimal" step="0.1" value="58">
+      </div>
+      <div class="full" style="display:flex;gap:16px;flex-wrap:wrap">
+        <label class="chk"><input id="vat" type="checkbox"> Add 14% VAT</label>
+        <label class="chk"><input id="adv" type="checkbox"> Somabay paid upfront</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="summary" id="summary"></p>
+    <table>
+      <thead><tr><th>Marina</th><th class="num" id="hRate">US$/m</th><th class="num" id="hTot">Total US$</th></tr></thead>
+      <tbody id="out"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <ul class="notes">
+      <li>Prices are per metre of LOA, excl. 14% VAT. Abydos is priced in EGP; all others in US$. Conversions use the rates above (€ via EGP).</li>
+      <li>Catamarans pay 1.5× the berthing rate at all marinas.</li>
+      <li>Somabay paid upfront (annual contracts only): 10% off. Its top band is 30 m and over.</li>
+      <li>Abydos commercial: bands 30–40 / over 40 m, no yearly rate, max 1 hour stay in berth.</li>
+      <li>Somabay resident rate and Abu Tig marina-owner rate are yearly only.</li>
+      <li>Band edges: up to 10 m = first band; 10.1 m = 10–20 band. 1 ft = 0.3048 m.</li>
+    </ul>
+  </div>
+</main>
+<script>
+// ---------- RATES (US$ or EGP per metre) ----------
+const B5=[10,20,30,50,Infinity], B_SOMA=[10,20,30,Infinity], B_ABY_C=[10,20,30,40,Infinity];
+const MARINAS=[
+  {use:'P',soma:true,name:'Somabay',sub:'Private',cur:'USD',bands:B_SOMA,D:[8,9,11,14],M:[90,108,135,171],Y:[810,972,1215,1539]},
+  {use:'P',soma:true,name:'Somabay',sub:'Resident',cur:'USD',bands:B_SOMA,Y:[405,486,608,770]},
+  {use:'P',name:'Hurghada Marina',sub:'Private',cur:'USD',bands:B5,D:[7.5,8.5,9.5,11,18],M:[70,80,95,130,170],Y:[555,640,710,1040,1400]},
+  {use:'P',name:'Abydos',sub:'El Gouna owner',cur:'EGP',bands:B5,D:[221,246,282,378,490],M:[2428,2647,2933,3931,4243],Y:[19680,23760,28716,32820,37320]},
+  {use:'P',name:'Abydos',sub:'Non-owner',cur:'EGP',bands:B5,D:[269,303,342,473,611],M:[2956,3545,3939,4914,5896],Y:[29928,36144,43596,49908,56724]},
+  {use:'P',name:'Abu Tig',sub:'El Gouna owner',cur:'USD',bands:B5,D:[12,14,17,21,26],M:[114,139,164,199,238],Y:[960,1164,1380,1584,1800]},
+  {use:'P',name:'Abu Tig',sub:'Marina owner',cur:'USD',bands:B5,Y:[828,996,1188,1356,1536]},
+  {use:'P',name:'Abu Tig',sub:'Non-owner',cur:'USD',bands:B5,D:[15,17,21,25,31],M:[141,169,201,248,297],Y:[1260,1512,1800,2052,2340]},
+  {use:'C',soma:true,name:'Somabay',sub:'Commercial',cur:'USD',bands:B_SOMA,D:[10,12,15,19],M:[100,120,150,190],Y:[900,1080,1350,1710]},
+  {use:'C',name:'Hurghada Marina',sub:'Commercial',cur:'USD',bands:B5,D:[7,8,9,11.5,17.5],M:[57,64,76,93,100],Y:[470,550,680,760,860]},
+  {use:'C',name:'Abydos',sub:'Commercial (1 hr max)',cur:'EGP',bands:B_ABY_C,D:[216,259,311,365,419],M:[2558,3076,3660,4198,4783]},
+];
+
+const state={dur:'Y',hull:'mono',use:'P',unit:'m',cur:'USD'};
+const form={hull:'mono',use:'P',unit:'m'};
+const SYM={USD:'US$',EGP:'EGP',EUR:'€'};
+const FT=0.3048;
+const $=id=>document.getElementById(id);
+const fmt=(n,d=0)=>n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const durWord={D:['day','days'],M:['month','months'],Y:['year','years']};
+const num=v=>{const n=parseFloat(v);return isFinite(n)&&n>0?n:null;};
+
+let boats=[];          // [{id, name, group, hull, use, loa, beam, draft, owner, notes}]
+let boatsCol=null;     // db collection ref
+let canWrite=true;
+let editingId=null;
+
+// ---------- SEGMENTED CONTROLS ----------
+function setSeg(key,v){state[key]=v;document.querySelectorAll(`.seg[data-key="${key}"] button`).forEach(b=>b.classList.toggle('on',b.dataset.v===v));}
+function setFormSeg(key,v){form[key]=v;document.querySelectorAll(`.seg[data-form="${key}"] button`).forEach(b=>b.classList.toggle('on',b.dataset.v===v));}
+document.querySelectorAll('.seg').forEach(seg=>seg.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(seg.dataset.key){
+    const k=seg.dataset.key;
+    if(k==='unit'&&state.unit!==b.dataset.v){ // convert the LOA in the box
+      const v=num($('loa').value); if(v) $('loa').value=+(b.dataset.v==='ft'?v/FT:v*FT).toFixed(2);
+    }
+    setSeg(k,b.dataset.v);calc();
+  } else if(seg.dataset.form){
+    const k=seg.dataset.form;
+    if(k==='unit'&&form.unit!==b.dataset.v){
+      ['fLoa','fBeam','fDraft'].forEach(id=>{const v=num($(id).value);if(v)$(id).value=+(b.dataset.v==='ft'?v/FT:v*FT).toFixed(2);});
+    }
+    setFormSeg(k,b.dataset.v);
+  }
+}));
+['qty','fx','fxe','vat','adv'].forEach(id=>$(id).addEventListener('input',calc));
+$('loa').addEventListener('input',calc);
+
+// ---------- CALCULATION ----------
+function bandIndex(loa,bands){for(let i=0;i<bands.length;i++){if(loa<=bands[i])return i;}return bands.length-1;}
+function calc(){
+  const raw=parseFloat($('loa').value);
+  const loa=state.unit==='ft'?raw*FT:raw;
+  $('loaLabel').textContent=state.unit==='ft'?'LOA (feet)':'LOA (metres)';
+  $('loaConv').textContent=raw>0?(state.unit==='ft'?`= ${fmt(loa,2)} m`:`= ${fmt(loa/FT,1)} ft`):'';
+  const qty=Math.max(1,parseInt($('qty').value)||1);
+  const fx=parseFloat($('fx').value)||50, fxe=parseFloat($('fxe').value)||58;
+  const conv=usd=>state.cur==='USD'?usd:state.cur==='EGP'?usd*fx:usd*fx/fxe;
+  const sym=SYM[state.cur];
+  $('hRate').textContent=sym+'/m';$('hTot').textContent='Total '+sym;
+  const vat=$('vat').checked?1.14:1, adv=$('adv').checked&&state.dur==='Y', cat=state.hull==='cat'?1.5:1;
+  $('qtyLabel').textContent='Number of '+durWord[state.dur][1];
+  const out=$('out');
+  if(!(loa>0)){out.innerHTML='<tr><td colspan="3" class="na">Enter a LOA</td></tr>';$('summary').textContent='';return;}
+  const rows=MARINAS.filter(m=>m.use===state.use).map(m=>{
+    const arr=m[state.dur];if(!arr)return{m,na:true};
+    const rate=arr[bandIndex(loa,m.bands)];
+    let perM=(m.cur==='EGP'?rate/fx:rate)*cat*vat;
+    if(adv&&m.soma)perM*=0.9;
+    const d=conv(perM);return{m,perM:d,total:d*loa*qty};
+  });
+  rows.sort((a,b)=>(a.na?1:0)-(b.na?1:0)||(a.total||0)-(b.total||0));
+  out.innerHTML=rows.map(r=>{
+    const cls=r.m.soma?' class="soma"':'';
+    const name=`<div class="m">${r.m.name}</div><div class="sub">${r.m.sub}</div>`;
+    if(r.na)return`<tr${cls}><td>${name}</td><td class="num na" colspan="2">No ${durWord[state.dur][0]}ly rate</td></tr>`;
+    return`<tr${cls}><td>${name}</td><td class="num">${fmt(r.perM,r.perM<100?1:0)}</td><td class="num"><div class="tot">${fmt(r.total)}</div></td></tr>`;
+  }).join('');
+  const sel=null;
+  $('summary').textContent=`${sel?sel.name+' · ':''}${state.unit==='ft'?fmt(raw,1)+' ft ('+fmt(loa,2)+' m)':fmt(loa,2)+' m'} ${state.hull==='cat'?'catamaran':'monohull'} · ${state.use==='P'?'private':'commercial'} · ${qty} ${durWord[state.dur][qty>1?1:0]}${vat>1?' · incl. VAT':' · excl. VAT'} · cheapest first`;
+}
+calc();
+</script>
+</body>
+</html>
